@@ -14,7 +14,8 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-} from '@/components/ui/sidebar'; // Assuming this is now in the correct path
+  useSidebar, // Import useSidebar
+} from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
   Package,
@@ -78,8 +79,16 @@ export function SidebarNavigation() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { isMobile, setOpenMobile } = useSidebar(); // Use the hook
 
   if (!user) return null;
+
+  const handleNavigation = (action: () => void) => {
+    action();
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   const getInitials = (name?: string) => {
     if (!name || typeof name !== 'string') {
@@ -101,9 +110,15 @@ export function SidebarNavigation() {
   };
   
   const handleParentItemClick = (href: string) => {
-    navigate(href);
-    if (!isExpanded(href)) {
-      toggleExpanded(href);
+    // Only navigate if it's not the current path, otherwise just toggle
+    if (location.pathname !== href) {
+        navigate(href);
+    }
+    toggleExpanded(href);
+
+    // Close on mobile if it's a direct parent click
+    if (isMobile) {
+        setOpenMobile(false);
     }
   };
 
@@ -111,7 +126,7 @@ export function SidebarNavigation() {
   const isActive = (href: string) => location.pathname === href || (href !== '/dashboard' && location.pathname.startsWith(href));
 
   return (
-    <Sidebar collapsible="icon" defaultOpen={true} side="left" className="bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
+    <Sidebar collapsible="offcanvas" side="left" className="bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border/50">
         <div className="flex flex-col items-center">
           <img 
@@ -147,7 +162,7 @@ export function SidebarNavigation() {
                           .filter(child => child.roles.includes(user.role))
                           .map((child) => (
                             <SidebarMenuSubItem key={child.href}>
-                              <NavLink to={child.href}>
+                              <NavLink to={child.href} onClick={() => handleNavigation(() => {})}>
                                 {({ isActive: isChildActive }) => (
                                   <SidebarMenuSubButton isActive={isChildActive} className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                                     <child.icon className="h-4 w-4" />
@@ -161,7 +176,7 @@ export function SidebarNavigation() {
                     )}
                   </>
                 ) : (
-                  <NavLink to={item.href}>
+                  <NavLink to={item.href} onClick={() => handleNavigation(() => {})}>
                     {({ isActive: isItemActive }) => (
                       <SidebarMenuButton isActive={isItemActive} className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                         <item.icon className="h-5 w-5" />
@@ -187,7 +202,7 @@ export function SidebarNavigation() {
         </div>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={logout} className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+            <SidebarMenuButton onClick={() => handleNavigation(logout)} className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
               <LogOut className="h-5 w-5" />
               <span className="group-data-[collapsible=icon]:hidden">登出</span>
             </SidebarMenuButton>
