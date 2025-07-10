@@ -13,7 +13,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:5002',
+        target: 'https://product-mng-be.onrender.com',
         changeOrigin: true,
         secure: false,
       },
