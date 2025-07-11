@@ -2,8 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getOrders, deleteOrder, updateOrderStatus } from "@/services/api";
 import { Order } from '@/types';
-import { CreateOrderForm } from '@/components/orders/CreateOrderForm';
-// import { EditOrderForm } from '@/components/orders/EditOrderForm';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -29,15 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  // DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+
 import { Loader2, Search, PlusCircle, Edit3, Trash2, Printer, Truck, ThumbsUp, X, CalendarIcon, ArrowLeft, ArrowRight, Eye, Archive } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -192,7 +182,6 @@ export default function OrdersPage() {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreateOrderDialogOpen, setIsCreateOrderDialogOpen] = useState(false);
 
   const searchTermFromState = location.state?.searchTerm;
 
@@ -252,7 +241,6 @@ export default function OrdersPage() {
   
     const handleOrderCreatedOrUpdated = () => {
         fetchOrders();
-        setIsCreateOrderDialogOpen(false);
     };
 
     const handleOrderDeleted = () => {
@@ -570,22 +558,9 @@ export default function OrdersPage() {
           <div className="space-x-2">
             {/* <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> 批量導入訂單</Button> */}
             <Button variant="outline" onClick={() => navigate('/admin/deleted-orders')}><Archive className="mr-2 h-4 w-4" /> 查看已刪除的訂單</Button>
-            <Dialog open={isCreateOrderDialogOpen} onOpenChange={setIsCreateOrderDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setIsCreateOrderDialogOpen(true)}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> 新增訂單
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>建立新訂單</DialogTitle>
-                  <DialogDescription>
-                    填寫以下資料以建立新訂單。
-                  </DialogDescription>
-                </DialogHeader>
-                <CreateOrderForm isOpen={isCreateOrderDialogOpen} onOpenChange={setIsCreateOrderDialogOpen} />
-              </DialogContent>
-            </Dialog>
+            <Button onClick={() => navigate('/orders/create')}>
+              <PlusCircle className="mr-2 h-4 w-4" /> 新增訂單
+            </Button>
           </div>
       <Card>
           <CardHeader>

@@ -17,6 +17,7 @@ import CustomerCategoriesPage from '@/pages/CustomerCategoriesPage'
 import OrderDetailsPage from '@/pages/OrderDetailsPage'
 import ProductDetailsPage from '@/pages/ProductDetailsPage'
 import EditOrderPage from '@/pages/EditOrderPage'
+import CreateOrderPage from '@/pages/CreateOrderPage'
 import CustomerOrdersPage from "@/pages/customers/CustomerOrdersPage";
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="categories" element={<ProductCategoriesPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/create" element={<CreateOrderPage />} />
           <Route path="orders/:id" element={<OrderDetailsPage />} />
           <Route path="orders/:id/edit" element={<EditOrderPage />} />
           <Route path="customers" element={<CustomersPage />} />
