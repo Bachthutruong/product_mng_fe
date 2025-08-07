@@ -38,6 +38,7 @@ const CreateOrderSchema = z.object({
   discountType: z.enum(['percentage', 'fixed']).nullable().optional(),
   discountValueInput: z.string().optional(),
   shippingFeeInput: z.string().optional(),
+  storeShippingCostInput: z.string().optional(), // Cost that store pays for shipping
 });
 
 type CreateOrderFormValues = z.infer<typeof CreateOrderSchema>;
@@ -64,6 +65,7 @@ export default function CreateOrderPage() {
       discountType: null,
       discountValueInput: '',
       shippingFeeInput: '',
+      storeShippingCostInput: '',
     },
   });
 
@@ -156,7 +158,7 @@ export default function CreateOrderPage() {
       productId: product._id,
       productName: product.name,
       quantity: 1,
-      unitPrice: product.price,
+      unitPrice: product.price, // Default price from product
     });
     setShowProductDropdown(false);
   };
@@ -193,12 +195,12 @@ export default function CreateOrderPage() {
 
 
 
-  const clearDraft = () => {
-    localStorage.removeItem('order-draft');
-    setIsDraftSaved(false);
-    form.reset();
-    setCustomerDisplayValue('');
-  };
+  // const clearDraft = () => {
+  //   localStorage.removeItem('order-draft');
+  //   setIsDraftSaved(false);
+  //   form.reset();
+  //   setCustomerDisplayValue('');
+  // };
 
   function onSubmit(data: CreateOrderFormValues) {
     if (!user) {
@@ -210,7 +212,8 @@ export default function CreateOrderPage() {
       totalAmount,
       discountAmount,
       shippingFee: data.shippingFeeInput ? parseFloat(data.shippingFeeInput) : 0,
-      discountValue: data.discountValueInput ? parseFloat(data.discountValueInput) : 0
+      discountValue: data.discountValueInput ? parseFloat(data.discountValueInput) : 0,
+      storeShippingCost: data.storeShippingCostInput ? parseFloat(data.storeShippingCostInput) : 0
     };
     mutation.mutate(submissionData);
   }
@@ -241,7 +244,7 @@ export default function CreateOrderPage() {
               Draft Saved
             </Badge>
           )}
-          <Button
+          {/* <Button
             variant="outline"
             size="sm"
             onClick={clearDraft}
@@ -249,7 +252,7 @@ export default function CreateOrderPage() {
             className="text-xs sm:text-sm"
           >
             Clear Draft
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -329,13 +332,26 @@ export default function CreateOrderPage() {
                           </div>
                           <div className="col-span-2">
                             <Input 
-                              value={formatCurrency(field.unitPrice)} 
-                              readOnly 
-                              className="w-full bg-muted text-xs sm:text-base" 
+                              type="number"
+                              {...form.register(`items.${index}.unitPrice`)}
+                              className="w-full text-xs sm:text-base"
+                              min="0"
+                              step="0.01"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const numVal = val === '' ? 0 : parseFloat(val);
+                                form.setValue(`items.${index}.unitPrice`, numVal);
+                                // Force re-calculation immediately
+                                setForceUpdateCounter(prev => prev + 1);
+                              }}
                             />
                           </div>
                           <div className="col-span-1 font-medium text-xs sm:text-base">
-                            {formatCurrency((Number(field.quantity) || 0) * (Number(field.unitPrice) || 0))}
+                            {(() => {
+                              const quantity = Number(form.watch(`items.${index}.quantity`) || 0);
+                              const unitPrice = Number(form.watch(`items.${index}.unitPrice`) || 0);
+                              return formatCurrency(quantity * unitPrice);
+                            })()}
                           </div>
                           <div className="col-span-1">
                             <Button 
@@ -512,6 +528,37 @@ export default function CreateOrderPage() {
                       <span>Total:</span>
                       <span>{formatCurrency(totalAmount)}</span>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Store Shipping Cost */}
+              <Card className="w-full">
+                <CardContent className="pt-4 sm:pt-6">
+                  <div className="space-y-3 sm:space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="storeShippingCostInput"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base sm:text-lg">Store Shipping Cost</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="0.00"
+                              {...field}
+                              min="0"
+                              step="0.01"
+                              className="text-xs sm:text-base"
+                            />
+                          </FormControl>
+                          <p className="text-xs text-muted-foreground">
+                            Cost that the store pays for shipping (for internal tracking)
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </CardContent>
               </Card>

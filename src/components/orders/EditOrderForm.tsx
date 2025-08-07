@@ -38,6 +38,7 @@ const EditOrderSchema = z.object({
   discountType: z.enum(['percentage', 'fixed']).nullable().optional(),
   discountValueInput: z.string().optional(),
   shippingFeeInput: z.string().optional(),
+  storeShippingCostInput: z.string().optional(),
 });
 
 type EditOrderFormValues = z.infer<typeof EditOrderSchema>;
@@ -70,6 +71,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
       discountType: (order as any).discountType || null,
       discountValueInput: (order as any).discountValue?.toString() || '',
       shippingFeeInput: (order as any).shippingFee?.toString() || '',
+      storeShippingCostInput: (order as any).storeShippingCost?.toString() || '',
     },
   });
 
@@ -110,19 +112,20 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
   const watchedDiscountValueInput = form.watch("discountValueInput");
   const watchedShippingFeeInput = form.watch("shippingFeeInput");
 
+  // Calculate totals
   const { subtotal, discountAmount, totalAmount } = useMemo(() => {
     const currentSubtotal = watchedItems.reduce((acc, item) => {
-        const quantity = Number(item.quantity) || 0;
-        const price = Number(item.unitPrice) || 0;
-        return acc + (quantity * price);
+      const quantity = Number(item.quantity) || 0;
+      const price = Number(item.unitPrice) || 0;
+      return acc + (quantity * price);
     }, 0);
 
     let currentDiscountAmount = 0;
     const discountValue = parseFloat(watchedDiscountValueInput || '0');
     if (watchedDiscountType === 'percentage' && discountValue > 0) {
-        currentDiscountAmount = (currentSubtotal * discountValue) / 100;
+      currentDiscountAmount = (currentSubtotal * discountValue) / 100;
     } else if (watchedDiscountType === 'fixed' && discountValue > 0) {
-        currentDiscountAmount = discountValue;
+      currentDiscountAmount = discountValue;
     }
     currentDiscountAmount = Math.max(0, Math.min(currentDiscountAmount, currentSubtotal));
     
@@ -130,9 +133,9 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
     const currentTotalAmount = currentSubtotal - currentDiscountAmount + shipping;
 
     return {
-        subtotal: currentSubtotal,
-        discountAmount: currentDiscountAmount,
-        totalAmount: currentTotalAmount,
+      subtotal: currentSubtotal,
+      discountAmount: currentDiscountAmount,
+      totalAmount: currentTotalAmount,
     };
   }, [watchedItems, watchedDiscountType, watchedDiscountValueInput, watchedShippingFeeInput, forceUpdateCounter]);
   
@@ -157,6 +160,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
       discountAmount,
       shippingFee: data.shippingFeeInput ? parseFloat(data.shippingFeeInput) : 0,
       discountValue: data.discountValueInput ? parseFloat(data.discountValueInput) : 0,
+      storeShippingCost: data.storeShippingCostInput ? parseFloat(data.storeShippingCostInput) : 0,
     };
     mutation.mutate(submissionData);
   }
@@ -198,39 +202,75 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
 
             <div className="space-y-2">
               <FormLabel>Items</FormLabel>
+              <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground">
+                <div className="col-span-6">Product</div>
+                <div className="col-span-2">Quantity</div>
+                <div className="col-span-2">Price</div>
+                <div className="col-span-1">Total</div>
+                <div className="col-span-1"></div>
+              </div>
               {fields.map((field, index) => (
-                <div key={field.id} className="flex items-center space-x-2">
-                  <Input value={field.productName} readOnly className="flex-1" />
-                  <Controller
-                    control={form.control}
-                    name={`items.${index}.quantity`}
-                    render={({ field }) => (
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => {
-                            const rawValue = e.target.value;
-                            const parsedValue = parseInt(rawValue, 10);
-                            field.onChange(rawValue === '' ? '' : (isNaN(parsedValue) ? 1 : parsedValue));
-                            setForceUpdateCounter(c => c + 1);
-                        }}
-                        onBlur={(e) => {
-                            field.onBlur();
-                            const rawValue = e.target.value;
-                            const parsedValue = parseInt(rawValue, 10);
-                            if (rawValue === '' || isNaN(parsedValue) || parsedValue < 1) {
-                                field.onChange(1);
-                                setForceUpdateCounter(c => c + 1);
-                            }
-                        }}
-                        className="w-20"
-                      />
-                    )}
-                  />
-                  <Input value={formatCurrency(field.unitPrice)} readOnly className="w-24" />
-                  <Button type="button" variant="ghost" onClick={() => remove(index)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                <div key={field.id} className="grid grid-cols-12 gap-2 items-center p-2 border rounded-lg">
+                  <div className="col-span-6">
+                    <div className="font-medium text-sm">{field.productName}</div>
+                  </div>
+                  <div className="col-span-2">
+                    <Controller
+                      control={form.control}
+                      name={`items.${index}.quantity`}
+                      render={({ field }) => (
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) => {
+                              const rawValue = e.target.value;
+                              const parsedValue = parseInt(rawValue, 10);
+                              field.onChange(rawValue === '' ? '' : (isNaN(parsedValue) ? 1 : parsedValue));
+                              setForceUpdateCounter(c => c + 1);
+                          }}
+                          onBlur={(e) => {
+                              field.onBlur();
+                              const rawValue = e.target.value;
+                              const parsedValue = parseInt(rawValue, 10);
+                              if (rawValue === '' || isNaN(parsedValue) || parsedValue < 1) {
+                                  field.onChange(1);
+                                  setForceUpdateCounter(c => c + 1);
+                              }
+                          }}
+                          className="w-full text-xs"
+                          min="1"
+                        />
+                      )}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Input 
+                      type="number"
+                      {...form.register(`items.${index}.unitPrice`)}
+                      className="w-full text-xs"
+                      min="0"
+                      step="0.01"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const numVal = val === '' ? 0 : parseFloat(val);
+                        form.setValue(`items.${index}.unitPrice`, numVal);
+                        // Force re-calculation immediately
+                        setForceUpdateCounter(prev => prev + 1);
+                      }}
+                    />
+                  </div>
+                  <div className="col-span-1 font-medium text-xs">
+                    {(() => {
+                      const quantity = Number(form.watch(`items.${index}.quantity`) || 0);
+                      const unitPrice = Number(form.watch(`items.${index}.unitPrice`) || 0);
+                      return formatCurrency(quantity * unitPrice);
+                    })()}
+                  </div>
+                  <div className="col-span-1">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -294,6 +334,10 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
                             {...field}
                             disabled={!watchedDiscountType}
                             min="0"
+                            onChange={(e) => {
+                              field.onChange(e);
+                              setForceUpdateCounter(prev => prev + 1);
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -316,6 +360,10 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
                               placeholder="例如：5.00"
                               {...field}
                               min="0"
+                              onChange={(e) => {
+                                field.onChange(e);
+                                setForceUpdateCounter(prev => prev + 1);
+                              }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -327,6 +375,35 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
             </Card>
 
             <div className="text-right font-bold text-lg">Total: {formatCurrency(totalAmount)}</div>
+            
+            {/* Store Shipping Cost */}
+            <Card className="p-4 bg-muted/30">
+              <FormLabel className="text-base font-medium">Store Shipping Cost</FormLabel>
+              <div className="mt-2">
+                <FormField
+                  control={form.control}
+                  name="storeShippingCostInput"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="sr-only">Store Shipping Cost ($)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Cost that store pays for shipping..."
+                          {...field}
+                          min="0"
+                          step="0.01"
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">
+                        Cost that the store pays for shipping (for internal tracking)
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </Card>
             
             <FormField
               control={form.control}

@@ -156,6 +156,21 @@ export function CustomerSelector({ value, onChange, placeholder = "Search custom
   return (
     <div className={cn("relative", className)}>
       <div className="space-y-2">
+        {/* Category Filter */}
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {customerCategories.map((category: any) => (
+              <SelectItem key={category._id} value={category._id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <div className="relative">
           <Input
             ref={inputRef}
@@ -178,21 +193,6 @@ export function CustomerSelector({ value, onChange, placeholder = "Search custom
             </Button>
           )}
         </div>
-
-        {/* Category Filter */}
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {customerCategories.map((category: any) => (
-              <SelectItem key={category._id} value={category._id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Dropdown */}

@@ -76,6 +76,7 @@ export interface Order {
   orderDate: string;
   shippingAddress?: string;
   notes?: string;
+  storeShippingCost?: number;
   isDeleted?: boolean;
   deletedAt?: string;
   deletedByName?: string;
