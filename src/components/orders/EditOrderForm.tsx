@@ -24,15 +24,15 @@ import { formatCurrency } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
 const EditOrderItemSchema = z.object({
-  productId: z.string().min(1, "Product is required."),
+  productId: z.string().min(1, "產品是必需的。"),
   productName: z.string(),
-  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+  quantity: z.coerce.number().min(1, "數量必須至少為 1。"),
   unitPrice: z.coerce.number(),
 });
 
 const EditOrderSchema = z.object({
-  customerId: z.string().min(1, "Customer is required."),
-  items: z.array(EditOrderItemSchema).min(1, "Order must have at least one item."),
+  customerId: z.string().min(1, "客戶是必需的。"),
+  items: z.array(EditOrderItemSchema).min(1, "訂單必須至少有一個項目。"),
   notes: z.string().optional(),
   status: z.string(),
   discountType: z.enum(['percentage', 'fixed']).nullable().optional(),
@@ -93,7 +93,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
   const mutation = useMutation({
     mutationFn: (data: Partial<Order>) => updateOrder(order._id, data),
     onSuccess: () => {
-      toast({ title: "Order Updated", description: `Order ${order.orderNumber} has been successfully updated.` });
+      toast({ title: "訂單已更新", description: `訂單 ${order.orderNumber} 已成功更新。` });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['order', order._id] });
       navigate('/orders');
@@ -101,8 +101,8 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
     onError: (error: any) => {
       toast({
         variant: "destructive",
-        title: "Update Failed",
-        description: error.response?.data?.error || "An unexpected error occurred."
+        title: "更新失敗",
+        description: error.response?.data?.error || "發生預期外的錯誤。"
       });
     },
   });
@@ -150,7 +150,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
 
   function onSubmit(data: EditOrderFormValues) {
     if (!user) {
-      toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in." });
+      toast({ variant: "destructive", title: "認證錯誤", description: "您必須登入。" });
       return;
     }
     const submissionData = {
@@ -172,7 +172,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Update Order #{order.orderNumber}</CardTitle>
+        <CardTitle>更新訂單 #{order.orderNumber}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -182,11 +182,11 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
               name="customerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Customer</FormLabel>
+                  <FormLabel>客戶</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a customer" />
+                        <SelectValue placeholder="選擇客戶" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -201,12 +201,12 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
             />
 
             <div className="space-y-2">
-              <FormLabel>Items</FormLabel>
+              <FormLabel>項目</FormLabel>
               <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground">
-                <div className="col-span-6">Product</div>
-                <div className="col-span-2">Quantity</div>
-                <div className="col-span-2">Price</div>
-                <div className="col-span-1">Total</div>
+                <div className="col-span-6">產品</div>
+                <div className="col-span-2">數量</div>
+                <div className="col-span-2">價格</div>
+                <div className="col-span-1">總計</div>
                 <div className="col-span-1"></div>
               </div>
               {fields.map((field, index) => (
@@ -276,10 +276,10 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
             </div>
 
             <div className="space-y-2">
-               <FormLabel>Add Product</FormLabel>
+               <FormLabel>新增產品</FormLabel>
                <div className="flex space-x-2">
                   <Input 
-                    placeholder="Search for products..."
+                    placeholder="搜尋產品..."
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
                   />
@@ -294,7 +294,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
                </div>
             </div>
 
-            <div className="text-right font-semibold">Subtotal: {formatCurrency(subtotal)}</div>
+            <div className="text-right font-semibold">小計: {formatCurrency(subtotal)}</div>
 
             {/* Discount and Shipping Section */}
             <Card className="p-4 bg-muted/30">
@@ -374,29 +374,29 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
                 </div>
             </Card>
 
-            <div className="text-right font-bold text-lg">Total: {formatCurrency(totalAmount)}</div>
+            <div className="text-right font-bold text-lg">總計: {formatCurrency(totalAmount)}</div>
             
             {/* Store Shipping Cost */}
             <Card className="p-4 bg-muted/30">
-              <FormLabel className="text-base font-medium">Store Shipping Cost</FormLabel>
+              <FormLabel className="text-base font-medium">商店運費成本</FormLabel>
               <div className="mt-2">
                 <FormField
                   control={form.control}
                   name="storeShippingCostInput"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="sr-only">Store Shipping Cost ($)</FormLabel>
+                      <FormLabel className="sr-only">商店運費成本 ($)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="Cost that store pays for shipping..."
+                          placeholder="商店支付的運費成本..."
                           {...field}
                           min="0"
                           step="0.01"
                         />
                       </FormControl>
                       <p className="text-xs text-muted-foreground">
-                        Cost that the store pays for shipping (for internal tracking)
+                        商店支付的運費成本（供內部追蹤）
                       </p>
                       <FormMessage />
                     </FormItem>
@@ -410,9 +410,9 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>備註</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Order notes..." {...field} />
+                    <Textarea placeholder="訂單備註..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -420,10 +420,10 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
             />
             
             <CardFooter className="flex justify-end gap-2 p-0 pt-6">
-              <Button type="button" variant="ghost" onClick={() => navigate('/orders')}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={() => navigate('/orders')}>取消</Button>
               <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Update Order
+                更新訂單
               </Button>
             </CardFooter>
           </form>

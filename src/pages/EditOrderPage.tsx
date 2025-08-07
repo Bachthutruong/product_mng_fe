@@ -42,17 +42,17 @@ export default function EditOrderPage() {
     <div className="space-y-4">
        <Button variant="outline" onClick={() => navigate('/orders')}>
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Orders
+        返回訂單列表
       </Button>
 
       {isLoading ? (
         <PageSkeleton />
       ) : isError ? (
-        <div className="text-red-500 text-center py-10">Error: {error.message}</div>
+        <div className="text-red-500 text-center py-10">錯誤: {error.message}</div>
       ) : order ? (
         <EditOrderForm order={order} />
       ) : (
-        <div className="text-center py-10">Order not found.</div>
+        <div className="text-center py-10">找不到訂單。</div>
       )}
     </div>
   );

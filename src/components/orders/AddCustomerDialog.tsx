@@ -27,9 +27,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Mail, Phone, MapPin } from 'lucide-react';
 
 const CreateCustomerSchema = z.object({
-  name: z.string().min(1, "Customer name is required"),
-  categoryId: z.string().min(1, "Please select a category"),
-  email: z.string().email("Invalid email address").optional().or(z.literal('')),
+  name: z.string().min(1, "客戶姓名是必需的"),
+  categoryId: z.string().min(1, "請選擇分類"),
+  email: z.string().email("無效的電子郵件地址").optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
   notes: z.string().optional().or(z.literal('')),
@@ -80,7 +80,7 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
       console.log('Customer created successfully:', data);
       console.log('Form variables:', variables);
       
-      toast({ title: "Success", description: "New customer has been created." });
+      toast({ title: "成功", description: "新客戶已建立。" });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       
       // Call the callback with the new customer info
@@ -105,8 +105,8 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
           console.error('No customerId found in API response:', data);
           toast({
             variant: "destructive",
-            title: "Error",
-            description: "Failed to get customer ID from server response."
+            title: "錯誤",
+            description: "無法從伺服器回應中取得客戶 ID。"
           });
         }
       }
@@ -118,8 +118,8 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
       console.error('Error creating customer:', error);
       toast({ 
         variant: "destructive", 
-        title: "Error", 
-        description: error.response?.data?.error || "Failed to create customer." 
+        title: "錯誤", 
+        description: error.response?.data?.error || "建立客戶失敗。" 
       });
     }
   });
@@ -134,10 +134,10 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Add New Customer
+            新增客戶
           </DialogTitle>
           <DialogDescription>
-            Fill in the customer information below. This customer will be added to your system and can be selected for future orders.
+            填寫以下客戶資訊。此客戶將被新增到您的系統中，並可在未來的訂單中選擇。
           </DialogDescription>
         </DialogHeader>
         
@@ -150,10 +150,10 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
                 <FormItem>
                   <FormLabel className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    Customer Name *
+                    客戶姓名 *
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter customer name" {...field} />
+                    <Input placeholder="輸入客戶姓名" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -165,11 +165,11 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category *</FormLabel>
+                  <FormLabel>分類 *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
+                        <SelectValue placeholder="選擇分類" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -199,7 +199,7 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
                   <FormItem>
                     <FormLabel className="flex items-center gap-1">
                       <Mail className="h-4 w-4" />
-                      Email
+                      電子郵件
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="customer@example.com" {...field} />
@@ -216,7 +216,7 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
                   <FormItem>
                     <FormLabel className="flex items-center gap-1">
                       <Phone className="h-4 w-4" />
-                      Phone
+                      電話
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="+1 234 567 8900" {...field} />
@@ -234,11 +234,11 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
                 <FormItem>
                   <FormLabel className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    Address
+                    地址
                   </FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Enter customer address" 
+                      placeholder="輸入客戶地址" 
                       {...field} 
                       rows={2}
                     />
@@ -253,10 +253,10 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>備註</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Any additional notes about this customer" 
+                      placeholder="關於此客戶的任何額外備註" 
                       {...field} 
                       rows={2}
                     />
@@ -275,7 +275,7 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
             onClick={() => onOpenChange(false)}
             disabled={mutation.isPending}
           >
-            Cancel
+            取消
           </Button>
           <Button 
             type="submit"
@@ -283,7 +283,7 @@ export function AddCustomerDialog({ isOpen, onOpenChange, onCustomerCreated }: A
             disabled={mutation.isPending}
           >
             {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Customer
+            建立客戶
           </Button>
         </DialogFooter>
       </DialogContent>

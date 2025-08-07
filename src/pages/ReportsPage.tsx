@@ -29,29 +29,29 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Reports</h1>
+        <h1 className="text-3xl font-bold">報表</h1>
         <div className="flex items-center gap-2">
           <DatePickerWithRange date={date} onDateChange={setDate} />
           <Button onClick={() => refetch()} disabled={isLoading}>
-            {isLoading ? <Loader2 className="animate-spin" /> : "Generate"}
+            {isLoading ? <Loader2 className="animate-spin" /> : "生成報表"}
           </Button>
         </div>
       </div>
       
       {isLoading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div> :
-       isError ? <div className="text-red-500">Failed to load report.</div> :
+       isError ? <div className="text-red-500">載入報表失敗。</div> :
       (
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
-            <CardHeader><CardTitle>Total Revenue</CardTitle></CardHeader>
+            <CardHeader><CardTitle>總收入</CardTitle></CardHeader>
             <CardContent><p className="text-2xl font-bold">{formatCurrency(summary?.totalRevenue || 0)}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>Total Orders</CardTitle></CardHeader>
+            <CardHeader><CardTitle>總訂單數</CardTitle></CardHeader>
             <CardContent><p className="text-2xl font-bold">{summary?.totalOrders || 0}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>Average Order Value</CardTitle></CardHeader>
+            <CardHeader><CardTitle>平均訂單金額</CardTitle></CardHeader>
             <CardContent><p className="text-2xl font-bold">{formatCurrency(summary?.averageOrderValue || 0)}</p></CardContent>
           </Card>
         </div>

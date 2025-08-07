@@ -20,7 +20,7 @@ interface CustomerSelectorProps {
   onSearchChange?: (value: string) => void;
 }
 
-export function CustomerSelector({ value, onChange, placeholder = "Search customers...", className, onAddNewCustomer, searchValue, onSearchChange }: CustomerSelectorProps) {
+export function CustomerSelector({ value, onChange, placeholder = "搜尋客戶...", className, onAddNewCustomer, searchValue, onSearchChange }: CustomerSelectorProps) {
   const [searchTerm, setSearchTerm] = useState(searchValue || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -159,10 +159,10 @@ export function CustomerSelector({ value, onChange, placeholder = "Search custom
         {/* Category Filter */}
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Filter by category" />
+            <SelectValue placeholder="依分類篩選" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">所有分類</SelectItem>
             {customerCategories.map((category: any) => (
               <SelectItem key={category._id} value={category._id}>
                 {category.name}
@@ -208,7 +208,7 @@ export function CustomerSelector({ value, onChange, placeholder = "Search custom
                 className="w-full flex items-center gap-2 text-primary hover:text-primary"
               >
                 <Plus className="h-4 w-4" />
-                Add New Customer
+                新增客戶
               </Button>
             </div>
           )}
@@ -216,15 +216,15 @@ export function CustomerSelector({ value, onChange, placeholder = "Search custom
           {isLoading && (
             <div className="p-4 text-center">
               <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-              <p className="text-sm text-muted-foreground mt-2">Searching customers...</p>
+              <p className="text-sm text-muted-foreground mt-2">搜尋客戶中...</p>
             </div>
           )}
 
           {!isLoading && filteredCustomers.length === 0 && (
             <div className="p-4 text-center">
               <User className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No customers found</p>
-              <p className="text-xs text-muted-foreground">Try adjusting your search or category filter</p>
+              <p className="text-sm text-muted-foreground">找不到客戶</p>
+              <p className="text-xs text-muted-foreground">請調整搜尋條件或分類篩選</p>
             </div>
           )}
 

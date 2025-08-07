@@ -20,14 +20,14 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
           <p className="text-sm">support@anniesway.com.tw</p>
         </div>
         <div className="text-right">
-          <h1 className="text-3xl font-bold">INVOICE</h1>
-          <p className="text-sm">Order #{order.orderNumber}</p>
-          <p className="text-sm">Date: {formatToYYYYMMDDWithTime(new Date(order.orderDate))}</p>
+          <h1 className="text-3xl font-bold">發票</h1>
+          <p className="text-sm">訂單 #{order.orderNumber}</p>
+          <p className="text-sm">日期: {formatToYYYYMMDDWithTime(new Date(order.orderDate))}</p>
         </div>
       </div>
 
       <div className="mb-8">
-        <h2 className="font-bold mb-2">Bill To:</h2>
+        <h2 className="font-bold mb-2">收件人:</h2>
         <p>{order.customerName}</p>
         {/* Add more customer details if available, e.g., address, phone */}
       </div>
@@ -35,10 +35,10 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
       <table className="w-full mb-8 text-sm">
         <thead>
           <tr className="border-b">
-            <th className="text-left py-2">Product</th>
-            <th className="text-right py-2">Quantity</th>
-            <th className="text-right py-2">Unit Price</th>
-            <th className="text-right py-2">Total</th>
+            <th className="text-left py-2">產品</th>
+            <th className="text-right py-2">數量</th>
+            <th className="text-right py-2">單價</th>
+            <th className="text-right py-2">總計</th>
           </tr>
         </thead>
         <tbody>
@@ -56,18 +56,18 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
       <div className="flex justify-end">
         <div className="w-1/3">
           <div className="flex justify-between">
-            <span>Subtotal</span>
+            <span>小計</span>
             <span>{formatCurrency(order.totalAmount)}</span>
           </div>
           {/* Add tax/shipping if applicable */}
           <div className="flex justify-between font-bold mt-2 pt-2 border-t">
-            <span>Total</span>
+            <span>總計</span>
             <span>{formatCurrency(order.totalAmount)}</span>
           </div>
         </div>
       </div>
        <div className="mt-16 text-xs text-center text-gray-500">
-        <p>Thank you for your business!</p>
+        <p>感謝您的惠顧！</p>
         <p>Annie's Way Mask Gallery</p>
       </div>
     </div>

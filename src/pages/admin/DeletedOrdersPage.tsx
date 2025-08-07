@@ -298,9 +298,9 @@ export default function DeletedOrdersPage() {
     return (
       <div className="text-center p-8">
         <ShieldAlert className="w-16 h-16 text-destructive mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>
-        <p>You do not have permission to view this page.</p>
-        <Button onClick={() => navigate('/dashboard')} className="mt-6">Go to Dashboard</Button>
+        <h1 className="text-2xl font-bold text-destructive">存取被拒絕</h1>
+        <p>您沒有權限查看此頁面。</p>
+        <Button onClick={() => navigate('/dashboard')} className="mt-6">前往儀表板</Button>
       </div>
     );
   }

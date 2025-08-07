@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 
 const UserEditSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
+  fullName: z.string().min(1, "姓名是必需的"),
   role: z.enum(["admin", "employee"]),
 });
 
@@ -37,11 +37,11 @@ export function EditUserDialog({ isOpen, onOpenChange, user }: { isOpen: boolean
   const mutation = useMutation({
     mutationFn: (data: z.infer<typeof UserEditSchema>) => updateUser(user._id, data),
     onSuccess: () => {
-      toast({ title: "User Updated" });
+      toast({ title: "用戶已更新" });
       queryClient.invalidateQueries({ queryKey: ["users"] });
       onOpenChange(false);
     },
-    onError: () => toast({ variant: "destructive", title: "Update Failed" }),
+    onError: () => toast({ variant: "destructive", title: "更新失敗" }),
   });
 
   const onSubmit = (data: z.infer<typeof UserEditSchema>) => {
@@ -51,26 +51,26 @@ export function EditUserDialog({ isOpen, onOpenChange, user }: { isOpen: boolean
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Edit User: {user?.username}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>編輯用戶: {user?.username}</DialogTitle></DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="fullName" render={({ field }) => (
-              <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              <FormItem><FormLabel>姓名</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
             <FormField control={form.control} name="role" render={({ field }) => (
-              <FormItem><FormLabel>Role</FormLabel>
+              <FormItem><FormLabel>角色</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="admin">管理員</SelectItem>
+                    <SelectItem value="employee">員工</SelectItem>
                   </SelectContent>
                 </Select>
               <FormMessage /></FormItem>
             )}/>
             <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" disabled={mutation.isPending}>Save</Button>
+              <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>取消</Button>
+              <Button type="submit" disabled={mutation.isPending}>儲存</Button>
             </DialogFooter>
           </form>
         </Form>

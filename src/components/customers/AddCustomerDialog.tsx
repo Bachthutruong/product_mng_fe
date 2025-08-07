@@ -26,9 +26,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 const CreateCustomerSchema = z.object({
-  name: z.string().min(1, "Customer name is required"),
-  categoryId: z.string().min(1, "Please select a category"),
-  email: z.string().email("Invalid email address").optional().or(z.literal('')),
+  name: z.string().min(1, "客戶姓名是必需的"),
+  categoryId: z.string().min(1, "請選擇分類"),
+  email: z.string().email("無效的電子郵件地址").optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
   customerCode: z.string().optional().or(z.literal('')),
@@ -67,13 +67,13 @@ export function AddCustomerDialog({ isOpen, onOpenChange }: AddCustomerDialogPro
   const mutation = useMutation({
     mutationFn: createCustomer,
     onSuccess: () => {
-      toast({ title: "Success", description: "New customer has been created." });
+      toast({ title: "成功", description: "新客戶已建立。" });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       onOpenChange(false);
       form.reset();
     },
     onError: (error: any) => {
-      toast({ variant: "destructive", title: "Error", description: error.response?.data?.error || "Failed to create customer." });
+      toast({ variant: "destructive", title: "錯誤", description: error.response?.data?.error || "建立客戶失敗。" });
     }
   });
 
@@ -85,9 +85,9 @@ export function AddCustomerDialog({ isOpen, onOpenChange }: AddCustomerDialogPro
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Customer</DialogTitle>
+          <DialogTitle>新增客戶</DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a new customer.
+            填寫以下詳細資料以新增客戶。
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -97,7 +97,7 @@ export function AddCustomerDialog({ isOpen, onOpenChange }: AddCustomerDialogPro
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Customer Name</FormLabel>
+                  <FormLabel>客戶姓名</FormLabel>
                   <FormControl>
                     <Input placeholder="John Doe" {...field} />
                   </FormControl>
@@ -110,11 +110,11 @@ export function AddCustomerDialog({ isOpen, onOpenChange }: AddCustomerDialogPro
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>分類</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingCategories}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder="選擇分類" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -133,7 +133,7 @@ export function AddCustomerDialog({ isOpen, onOpenChange }: AddCustomerDialogPro
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>電子郵件</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="john.doe@example.com" {...field} />
                   </FormControl>
@@ -146,7 +146,7 @@ export function AddCustomerDialog({ isOpen, onOpenChange }: AddCustomerDialogPro
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>電話</FormLabel>
                   <FormControl>
                     <Input placeholder="+1 234 567 890" {...field} />
                   </FormControl>
@@ -156,9 +156,9 @@ export function AddCustomerDialog({ isOpen, onOpenChange }: AddCustomerDialogPro
             />
             {/* Add other fields as needed */}
             <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>取消</Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Customer"}
+                {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "儲存客戶"}
               </Button>
             </DialogFooter>
           </form>

@@ -27,9 +27,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 const UpdateCustomerSchema = z.object({
-  name: z.string().min(1, "Customer name is required"),
-  categoryId: z.string().min(1, "Please select a category"),
-  email: z.string().email("Invalid email address").optional().or(z.literal('')),
+  name: z.string().min(1, "客戶姓名是必需的"),
+  categoryId: z.string().min(1, "請選擇分類"),
+  email: z.string().email("無效的電子郵件地址").optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
   customerCode: z.string().optional().or(z.literal('')),
@@ -75,12 +75,12 @@ export function EditCustomerDialog({ isOpen, onOpenChange, customer }: EditCusto
   const mutation = useMutation({
     mutationFn: (data: UpdateCustomerInput) => updateCustomer({ id: customer._id, customerData: data }),
     onSuccess: () => {
-      toast({ title: "Success", description: "Customer details have been updated." });
+      toast({ title: "成功", description: "客戶詳細資料已更新。" });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       onOpenChange(false);
     },
     onError: (error: any) => {
-      toast({ variant: "destructive", title: "Error", description: error.response?.data?.error || "Failed to update customer." });
+      toast({ variant: "destructive", title: "錯誤", description: error.response?.data?.error || "更新客戶失敗。" });
     }
   });
 
@@ -92,9 +92,9 @@ export function EditCustomerDialog({ isOpen, onOpenChange, customer }: EditCusto
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Customer</DialogTitle>
+          <DialogTitle>編輯客戶</DialogTitle>
           <DialogDescription>
-            Update the customer details below.
+            更新以下客戶詳細資料。
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -104,7 +104,7 @@ export function EditCustomerDialog({ isOpen, onOpenChange, customer }: EditCusto
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Customer Name</FormLabel>
+                  <FormLabel>客戶姓名</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -117,11 +117,11 @@ export function EditCustomerDialog({ isOpen, onOpenChange, customer }: EditCusto
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>分類</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingCategories}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder="選擇分類" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -140,7 +140,7 @@ export function EditCustomerDialog({ isOpen, onOpenChange, customer }: EditCusto
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>電子郵件</FormLabel>
                   <FormControl>
                     <Input type="email" {...field} />
                   </FormControl>
@@ -149,9 +149,9 @@ export function EditCustomerDialog({ isOpen, onOpenChange, customer }: EditCusto
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>取消</Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Changes"}
+                {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "儲存變更"}
               </Button>
             </DialogFooter>
           </form>

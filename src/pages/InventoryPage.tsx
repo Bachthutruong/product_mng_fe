@@ -13,8 +13,9 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
+      <h1 className="text-3xl font-bold">庫存管理</h1>
       {isLoadingProducts ? (
-        <p>Loading products...</p>
+        <p>載入產品中...</p>
       ) : (
         <InventoryOperationForm products={allProducts} />
       )}

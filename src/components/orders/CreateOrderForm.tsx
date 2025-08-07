@@ -25,16 +25,16 @@ import { Loader2, PlusCircle, Trash2, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 const CreateOrderItemSchema = z.object({
-  productId: z.string().min(1, "Product is required."),
+  productId: z.string().min(1, "產品是必需的。"),
   productName: z.string(),
-  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+  quantity: z.coerce.number().min(1, "數量必須至少為 1。"),
   unitPrice: z.coerce.number(),
 });
 
 const CreateOrderSchema = z.object({
-  customerId: z.string().min(1, "Customer is required."),
+  customerId: z.string().min(1, "客戶是必需的。"),
   customerCategoryId: z.string(),
-  items: z.array(CreateOrderItemSchema).min(1, "Order must have at least one item."),
+  items: z.array(CreateOrderItemSchema).min(1, "訂單必須至少有一個項目。"),
   notes: z.string().optional(),
   discountType: z.enum(['percentage', 'fixed']).nullable().optional(),
   discountValueInput: z.string().optional(),
@@ -91,8 +91,8 @@ export function CreateOrderForm({ isOpen, onOpenChange }: CreateOrderFormProps) 
         console.error('Error in customer categories query:', error);
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Failed to load customer categories"
+          title: "錯誤",
+          description: "載入客戶分類失敗"
         });
         return [];
       }
@@ -134,7 +134,7 @@ export function CreateOrderForm({ isOpen, onOpenChange }: CreateOrderFormProps) 
   const mutation = useMutation({
     mutationFn: (data: any) => createOrder(data), // Adjusted for new fields
     onSuccess: (data: any) => {
-      toast({ title: "Order Created", description: `Order ${data.orderNumber} has been successfully created.` });
+      toast({ title: "訂單已建立", description: `訂單 ${data.orderNumber} 已成功建立。` });
       queryClient.invalidateQueries({queryKey: ['orders']});
       form.reset();
       onOpenChange(false);
@@ -142,8 +142,8 @@ export function CreateOrderForm({ isOpen, onOpenChange }: CreateOrderFormProps) 
     onError: (error: any) => {
       toast({
         variant: "destructive",
-        title: "Creation Failed",
-        description: error.response?.data?.error || "An unexpected error occurred."
+        title: "建立失敗",
+        description: error.response?.data?.error || "發生預期外的錯誤。"
       });
     },
   });
@@ -190,7 +190,7 @@ export function CreateOrderForm({ isOpen, onOpenChange }: CreateOrderFormProps) 
 
   function onSubmit(data: CreateOrderFormValues) {
     if (!user) {
-      toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in." });
+      toast({ variant: "destructive", title: "認證錯誤", description: "您必須登入。" });
       return;
     }
     const submissionData = {
@@ -271,7 +271,7 @@ export function CreateOrderForm({ isOpen, onOpenChange }: CreateOrderFormProps) 
                 </FormLabel>
                 <div className="space-y-2">
                   <Input 
-                    placeholder="Search for customers..." 
+                    placeholder="搜尋客戶..." 
                     value={customerDisplayValue}
                     onChange={(e) => {
                       const value = e.target.value;

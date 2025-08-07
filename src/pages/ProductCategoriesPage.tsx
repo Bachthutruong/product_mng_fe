@@ -72,33 +72,33 @@ export default function ProductCategoriesPage() {
   const createMutation = useMutation({
     mutationFn: createProductCategory,
     onSuccess: () => {
-      toast({ title: "Success", description: "Category created." });
+      toast({ title: "成功", description: "分類已建立。" });
       queryClient.invalidateQueries({ queryKey: ['productCategories'] });
       setIsFormOpen(false);
     },
-    onError: (err: any) => toast({ variant: "destructive", title: "Error", description: err.response?.data?.error || "Failed to create category." }),
+    onError: (err: any) => toast({ variant: "destructive", title: "錯誤", description: err.response?.data?.error || "建立分類失敗。" }),
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: { id: string; category: CategoryFormData }) => updateProductCategory(data.id, data.category),
     onSuccess: () => {
-      toast({ title: "Success", description: "Category updated." });
+      toast({ title: "成功", description: "分類已更新。" });
       queryClient.invalidateQueries({ queryKey: ['productCategories'] });
       setIsFormOpen(false);
       setSelectedCategory(null);
     },
-    onError: (err: any) => toast({ variant: "destructive", title: "Error", description: err.response?.data?.error || "Failed to update category." }),
+    onError: (err: any) => toast({ variant: "destructive", title: "錯誤", description: err.response?.data?.error || "更新分類失敗。" }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteProductCategory,
     onSuccess: () => {
-      toast({ title: "Success", description: "Category deleted." });
+      toast({ title: "成功", description: "分類已刪除。" });
       queryClient.invalidateQueries({ queryKey: ['productCategories'] });
       setIsDeleteConfirmOpen(false);
       setSelectedCategory(null);
     },
-    onError: (err: any) => toast({ variant: "destructive", title: "Error", description: err.response?.data?.error || "Failed to delete category." }),
+    onError: (err: any) => toast({ variant: "destructive", title: "錯誤", description: err.response?.data?.error || "刪除分類失敗。" }),
   });
 
   const handleSave = (data: CategoryFormData) => {
@@ -175,7 +175,7 @@ export default function ProductCategoriesPage() {
                 ) : categories?.length === 0 ? (
                     <TableRow>
                         <TableCell colSpan={5} className="text-center h-24">
-                            No categories found.
+                            找不到分類。
                         </TableCell>
                     </TableRow>
                 ) : (
@@ -205,9 +205,9 @@ export default function ProductCategoriesPage() {
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedCategory ? "Edit Category" : "Add New Category"}</DialogTitle>
+            <DialogTitle>{selectedCategory ? "編輯分類" : "新增分類"}</DialogTitle>
             <DialogDescription>
-              {selectedCategory ? "Update the details of your category." : "Fill in the details to add a new category."}
+              {selectedCategory ? "更新您的分類詳細資料。" : "填寫詳細資料以新增分類。"}
             </DialogDescription>
           </DialogHeader>
           <CategoryForm 
@@ -222,15 +222,15 @@ export default function ProductCategoriesPage() {
       <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>您確定嗎？</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the "{selectedCategory?.name}" category.
+              此操作無法復原。這將永久刪除分類 "{selectedCategory?.name}"。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction onClick={() => selectedCategory && deleteMutation.mutate(selectedCategory._id)} disabled={deleteMutation.isPending}>
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? "刪除中..." : "刪除"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

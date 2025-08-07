@@ -15,25 +15,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, Trash2, ArrowLeft, User, Package, Calculator, Save } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, User, Package, Calculator } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { CustomerSelector } from '@/components/orders/CustomerSelector';
 import { ProductSelector } from '@/components/orders/ProductSelector';
 import { AddCustomerDialog } from '@/components/orders/AddCustomerDialog';
 
 const CreateOrderItemSchema = z.object({
-  productId: z.string().min(1, "Product is required."),
+  productId: z.string().min(1, "產品是必需的。"),
   productName: z.string(),
-  quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
+  quantity: z.coerce.number().min(1, "數量必須至少為 1。"),
   unitPrice: z.coerce.number(),
 });
 
 const CreateOrderSchema = z.object({
-  customerId: z.string().min(1, "Customer is required."),
+  customerId: z.string().min(1, "客戶是必需的。"),
   customerCategoryId: z.string(),
-  items: z.array(CreateOrderItemSchema).min(1, "Order must have at least one item."),
+  items: z.array(CreateOrderItemSchema).min(1, "訂單必須至少有一個項目。"),
   notes: z.string().optional(),
   discountType: z.enum(['percentage', 'fixed']).nullable().optional(),
   discountValueInput: z.string().optional(),
@@ -52,7 +52,7 @@ export default function CreateOrderPage() {
   const [customerDisplayValue, setCustomerDisplayValue] = useState('');
   const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [forceUpdateCounter, setForceUpdateCounter] = useState(0);
-  const [isDraftSaved, setIsDraftSaved] = useState(false);
+  // const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   
   const form = useForm<CreateOrderFormValues>({
@@ -82,7 +82,6 @@ export default function CreateOrderPage() {
         const draft = JSON.parse(savedDraft);
         form.reset(draft);
         setCustomerDisplayValue(draft.customerDisplayValue || '');
-        setIsDraftSaved(true);
       } catch (error) {
         console.error('Error loading draft:', error);
       }
@@ -98,7 +97,6 @@ export default function CreateOrderPage() {
         timestamp: Date.now()
       };
       localStorage.setItem('order-draft', JSON.stringify(draft));
-      setIsDraftSaved(true);
     });
     return () => subscription.unsubscribe();
   }, [form, customerDisplayValue]);
@@ -110,7 +108,7 @@ export default function CreateOrderPage() {
       queryClient.invalidateQueries({queryKey: ['orders']});
       // Clear draft after successful creation
       localStorage.removeItem('order-draft');
-      setIsDraftSaved(false);
+      // setIsDraftSaved(false);
       navigate('/orders');
     },
     onError: (error: any) => {
@@ -204,7 +202,7 @@ export default function CreateOrderPage() {
 
   function onSubmit(data: CreateOrderFormValues) {
     if (!user) {
-      toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in." });
+      toast({ variant: "destructive", title: "認證錯誤", description: "您必須登入。" });
       return;
     }
     const submissionData = {
@@ -223,27 +221,14 @@ export default function CreateOrderPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
         <div className="flex items-center gap-2 sm:gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/orders')}
-            className="flex items-center gap-2 text-base sm:text-sm"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Orders
-          </Button>
+          
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Create New Order</h1>
-            <p className="text-muted-foreground text-sm sm:text-base">Fill in the details below to create a new order</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">建立新訂單</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">填寫以下詳細資料以建立新訂單</p>
           </div>
         </div>
         <div className="flex items-center gap-2 mt-2 sm:mt-0">
-          {isDraftSaved && (
-            <Badge variant="secondary" className="flex items-center gap-1 text-xs sm:text-sm">
-              <Save className="h-3 w-3" />
-              Draft Saved
-            </Badge>
-          )}
+          
           {/* <Button
             variant="outline"
             size="sm"
@@ -266,13 +251,13 @@ export default function CreateOrderPage() {
                 <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
                   <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                     <User className="h-5 w-5" />
-                    Customer Information
+                    客戶資訊
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-3 py-2 sm:px-6 sm:py-4">
                   <div className="space-y-2">
                     <FormLabel className="flex items-center gap-1 text-base sm:text-lg">
-                      Customer
+                      客戶
                       <span className="text-destructive">*</span>
                     </FormLabel>
                     <CustomerSelector
@@ -282,7 +267,7 @@ export default function CreateOrderPage() {
                         form.setValue('customerId', customerId);
                         setCustomerDisplayValue(customerName);
                       }}
-                      placeholder="Search for customers..."
+                      placeholder="搜尋客戶..."
                       onAddNewCustomer={handleAddNewCustomer}
                       searchValue={customerDisplayValue}
                       onSearchChange={setCustomerDisplayValue}
@@ -293,10 +278,10 @@ export default function CreateOrderPage() {
 
               {/* Order Items */}
               <Card className="w-full">
-                <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
+                <CardHeader className="px-3 py-2 sm:px-6 sm:px-6 sm:py-4">
                   <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                     <Package className="h-5 w-5" />
-                    Order Items
+                    訂單項目
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-3 py-2 sm:px-6 sm:py-4">
@@ -304,10 +289,10 @@ export default function CreateOrderPage() {
                   {fields.length > 0 && (
                     <div className="space-y-2 sm:space-y-3">
                       <div className="grid grid-cols-12 gap-1 sm:gap-2 text-xs sm:text-sm font-medium text-muted-foreground">
-                        <div className="col-span-6">Product</div>
-                        <div className="col-span-2">Quantity</div>
-                        <div className="col-span-2">Price</div>
-                        <div className="col-span-1">Total</div>
+                        <div className="col-span-6">產品</div>
+                        <div className="col-span-2">數量</div>
+                        <div className="col-span-2">價格</div>
+                        <div className="col-span-1">總計</div>
                         <div className="col-span-1"></div>
                       </div>
                       {fields.map((field, index) => (
@@ -379,11 +364,11 @@ export default function CreateOrderPage() {
                         className="flex items-center gap-2 text-xs sm:text-base"
                       >
                         <PlusCircle className="h-4 w-4" />
-                        Add Product
+                        新增產品
                       </Button>
                       {fields.length > 0 && (
                         <span className="text-xs sm:text-sm text-muted-foreground">
-                          {fields.length} item{fields.length !== 1 ? 's' : ''} in order
+                          訂單中有 {fields.length} 個項目
                         </span>
                       )}
                     </div>
@@ -391,7 +376,7 @@ export default function CreateOrderPage() {
                     {showProductDropdown && (
                       <ProductSelector
                         onProductSelect={addProduct}
-                        placeholder="Search products..."
+                        placeholder="搜尋產品..."
                         className="relative"
                       />
                     )}
@@ -402,7 +387,7 @@ export default function CreateOrderPage() {
               {/* Notes */}
               <Card className="w-full">
                 <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
-                  <CardTitle className="text-lg sm:text-xl">Order Notes</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">訂單備註</CardTitle>
                 </CardHeader>
                 <CardContent className="px-3 py-2 sm:px-6 sm:py-4">
                   <FormField
@@ -412,7 +397,7 @@ export default function CreateOrderPage() {
                       <FormItem>
                         <FormControl>
                           <Textarea 
-                            placeholder="Add any special instructions or notes for this order..." 
+                            placeholder="為此訂單添加任何特殊說明或備註..." 
                             {...field} 
                             rows={3}
                             className="text-xs sm:text-base"
@@ -433,13 +418,13 @@ export default function CreateOrderPage() {
                 <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
                   <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                     <Calculator className="h-5 w-5" />
-                    Order Summary
+                    訂單摘要
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-3 py-2 sm:px-6 sm:py-4">
                   {/* Discount */}
                   <div className="space-y-2">
-                    <FormLabel className="text-base sm:text-lg">Discount</FormLabel>
+                    <FormLabel className="text-base sm:text-lg">折扣</FormLabel>
                     <div className="grid grid-cols-2 gap-2">
                       <FormField
                         control={form.control}
@@ -449,12 +434,12 @@ export default function CreateOrderPage() {
                             <Select onValueChange={field.onChange} value={field.value || ''}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Type" />
+                                  <SelectValue placeholder="類型" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="percentage">Percentage (%)</SelectItem>
-                                <SelectItem value="fixed">Fixed Amount ($)</SelectItem>
+                                <SelectItem value="percentage">百分比 (%)</SelectItem>
+                                <SelectItem value="fixed">固定金額 ($)</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -490,7 +475,7 @@ export default function CreateOrderPage() {
                     name="shippingFeeInput"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base sm:text-lg">Shipping Fee</FormLabel>
+                        <FormLabel className="text-base sm:text-lg">運費</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -509,23 +494,23 @@ export default function CreateOrderPage() {
                   {/* Summary */}
                   <div className="space-y-2 pt-2 sm:pt-4 border-t">
                     <div className="flex justify-between text-xs sm:text-sm">
-                      <span>Subtotal:</span>
+                      <span>小計:</span>
                       <span>{formatCurrency(subtotal)}</span>
                     </div>
                     {watchedDiscountType && parseFloat(watchedDiscountValueInput || '0') > 0 && (
                       <div className="flex justify-between text-xs sm:text-sm text-green-600">
-                        <span>Discount:</span>
+                        <span>折扣:</span>
                         <span>-{formatCurrency(discountAmount)}</span>
                       </div>
                     )}
                     {parseFloat(watchedShippingFeeInput || '0') > 0 && (
                       <div className="flex justify-between text-xs sm:text-sm text-blue-600">
-                        <span>Shipping:</span>
+                        <span>運費:</span>
                         <span>+{formatCurrency(parseFloat(watchedShippingFeeInput || '0'))}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-base sm:text-lg font-bold pt-2 border-t">
-                      <span>Total:</span>
+                      <span>總計:</span>
                       <span>{formatCurrency(totalAmount)}</span>
                     </div>
                   </div>
@@ -541,7 +526,7 @@ export default function CreateOrderPage() {
                       name="storeShippingCostInput"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base sm:text-lg">Store Shipping Cost</FormLabel>
+                          <FormLabel className="text-base sm:text-lg">商店運費成本</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -553,7 +538,7 @@ export default function CreateOrderPage() {
                             />
                           </FormControl>
                           <p className="text-xs text-muted-foreground">
-                            Cost that the store pays for shipping (for internal tracking)
+                            商店支付的運費成本（供內部追蹤）
                           </p>
                           <FormMessage />
                         </FormItem>
@@ -574,7 +559,7 @@ export default function CreateOrderPage() {
                       size="lg"
                     >
                       {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Create Order
+                      建立訂單
                     </Button>
                     <Button 
                       type="button"
@@ -582,7 +567,7 @@ export default function CreateOrderPage() {
                       className="w-full text-base sm:text-lg"
                       onClick={() => navigate('/orders')}
                     >
-                      Cancel
+                      取消
                     </Button>
                   </div>
                 </CardContent>

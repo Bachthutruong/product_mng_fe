@@ -59,6 +59,7 @@ const navItems: NavItem[] = [
     icon: ShoppingCart, 
     roles: ['admin', 'employee'],
     children: [
+      { href: '/orders/create', label: '建立訂單', icon: ShoppingCart, roles: ['admin', 'employee'] },
       { href: '/admin/deleted-orders', label: '已刪除訂單', icon: Trash2, roles: ['admin'] },
     ]
   },

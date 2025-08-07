@@ -16,7 +16,7 @@ interface ProductSelectorProps {
   className?: string;
 }
 
-export function ProductSelector({ onProductSelect, placeholder = "Search products...", className }: ProductSelectorProps) {
+export function ProductSelector({ onProductSelect, placeholder = "搜尋產品...", className }: ProductSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -57,9 +57,9 @@ export function ProductSelector({ onProductSelect, placeholder = "Search product
   };
 
   const getStockStatus = (stock: number, lowStockThreshold: number) => {
-    if (stock <= 0) return { status: 'out', color: 'destructive', text: 'Out of Stock' };
-    if (stock <= lowStockThreshold) return { status: 'low', color: 'secondary', text: 'Low Stock' };
-    return { status: 'available', color: 'default', text: 'In Stock' };
+    if (stock <= 0) return { status: 'out', color: 'destructive', text: '缺貨' };
+    if (stock <= lowStockThreshold) return { status: 'low', color: 'secondary', text: '庫存不足' };
+    return { status: 'available', color: 'default', text: '有庫存' };
   };
 
   return (
@@ -83,15 +83,15 @@ export function ProductSelector({ onProductSelect, placeholder = "Search product
             {isLoading && (
               <div className="p-4 text-center">
                 <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                <p className="text-sm text-muted-foreground mt-2">Searching products...</p>
+                <p className="text-sm text-muted-foreground mt-2">搜尋產品中...</p>
               </div>
             )}
 
             {!isLoading && products.length === 0 && (
               <div className="p-4 text-center">
                 <Package className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No products found</p>
-                <p className="text-xs text-muted-foreground">Try adjusting your search</p>
+                <p className="text-sm text-muted-foreground">找不到產品</p>
+                <p className="text-xs text-muted-foreground">請調整搜尋條件</p>
               </div>
             )}
 
@@ -116,9 +116,9 @@ export function ProductSelector({ onProductSelect, placeholder = "Search product
                           
                           <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                             <span>SKU: {product.sku}</span>
-                            <span>Price: {formatCurrency(product.price)}</span>
-                            <span>Stock: {product.stock}</span>
-                            {product.unit && <span>Unit: {product.unit}</span>}
+                            <span>價格: {formatCurrency(product.price)}</span>
+                            <span>庫存: {product.stock}</span>
+                            {product.unit && <span>單位: {product.unit}</span>}
                           </div>
 
                           {product.description && (
@@ -130,7 +130,7 @@ export function ProductSelector({ onProductSelect, placeholder = "Search product
                           {stockStatus.status === 'low' && (
                             <div className="flex items-center gap-1 mt-1 text-xs text-orange-600">
                               <AlertTriangle className="h-3 w-3" />
-                              Low stock alert (threshold: {product.lowStockThreshold})
+                              庫存不足警告 (門檻: {product.lowStockThreshold})
                             </div>
                           )}
                         </div>
