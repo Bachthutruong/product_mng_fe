@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getProducts } from '@/services/api';
 import { Product } from '@/types';
@@ -19,6 +19,23 @@ interface ProductSelectorProps {
 export function ProductSelector({ onProductSelect, placeholder = "Search products...", className }: ProductSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products', { search: searchTerm, limit: 20 }],
@@ -50,6 +67,7 @@ export function ProductSelector({ onProductSelect, placeholder = "Search product
       <div className="space-y-2">
         <div className="relative">
           <Input
+            ref={inputRef}
             placeholder={placeholder}
             value={searchTerm}
             onChange={handleInputChange}
@@ -61,7 +79,7 @@ export function ProductSelector({ onProductSelect, placeholder = "Search product
 
         {/* Dropdown */}
         {showDropdown && (
-          <div className="absolute z-50 w-full mt-2 max-h-80 overflow-y-auto border rounded-lg bg-background shadow-lg">
+          <div ref={dropdownRef} className="absolute z-50 w-full mt-2 max-h-80 overflow-y-auto border rounded-lg bg-background shadow-lg">
             {isLoading && (
               <div className="p-4 text-center">
                 <Loader2 className="h-4 w-4 animate-spin mx-auto" />

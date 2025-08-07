@@ -21,6 +21,7 @@ import { Loader2, PlusCircle, Trash2, ArrowLeft, User, Package, Calculator, Save
 import { formatCurrency } from '@/lib/utils';
 import { CustomerSelector } from '@/components/orders/CustomerSelector';
 import { ProductSelector } from '@/components/orders/ProductSelector';
+import { AddCustomerDialog } from '@/components/orders/AddCustomerDialog';
 
 const CreateOrderItemSchema = z.object({
   productId: z.string().min(1, "Product is required."),
@@ -51,6 +52,7 @@ export default function CreateOrderPage() {
   const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [forceUpdateCounter, setForceUpdateCounter] = useState(0);
   const [isDraftSaved, setIsDraftSaved] = useState(false);
+  const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   
   const form = useForm<CreateOrderFormValues>({
     resolver: zodResolver(CreateOrderSchema),
@@ -98,30 +100,6 @@ export default function CreateOrderPage() {
     });
     return () => subscription.unsubscribe();
   }, [form, customerDisplayValue]);
-
-//   const { data: customerCategories = [] } = useQuery({
-//     queryKey: ['customerCategories'],
-//     queryFn: async () => {
-//       try {
-//         const data = await getCustomerCategories();
-//         if (!Array.isArray(data)) {
-//           return [];
-//         }
-//         return data;
-//       } catch (error) {
-//         console.error('Error in customer categories query:', error);
-//         toast({
-//           variant: "destructive",
-//           title: "Error",
-//           description: "Failed to load customer categories"
-//         });
-//         return [];
-//       }
-//     },
-//     staleTime: 1000 * 60 * 5,
-//   });
-
-
 
   const mutation = useMutation({
     mutationFn: (data: any) => createOrder(data),
@@ -183,6 +161,36 @@ export default function CreateOrderPage() {
     setShowProductDropdown(false);
   };
 
+  const handleAddNewCustomer = () => {
+    setShowAddCustomerDialog(true);
+  };
+
+  const handleCustomerCreated = (customerId: string, customerName: string) => {
+    console.log('Customer created:', { customerId, customerName });
+    
+    if (!customerId || !customerName) {
+      console.error('Invalid customer data:', { customerId, customerName });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to get customer information after creation."
+      });
+      return;
+    }
+    
+    // Set the form values with real customer data
+    form.setValue('customerId', customerId);
+    setCustomerDisplayValue(customerName);
+    
+    // Force re-render of CustomerSelector
+    setForceUpdateCounter(prev => prev + 1);
+    
+    toast({ 
+      title: "Customer Added", 
+      description: `${customerName} has been added and selected for this order.` 
+    });
+  };
+
 
 
   const clearDraft = () => {
@@ -206,8 +214,6 @@ export default function CreateOrderPage() {
     };
     mutation.mutate(submissionData);
   }
-
-
 
   return (
     <div className="container mx-auto py-4 px-2 space-y-4 sm:py-6 sm:px-4 sm:space-y-6">
@@ -267,12 +273,16 @@ export default function CreateOrderPage() {
                       <span className="text-destructive">*</span>
                     </FormLabel>
                     <CustomerSelector
+                      key={`customer-selector-${forceUpdateCounter}`}
                       value={form.watch('customerId')}
                       onChange={(customerId, customerName) => {
                         form.setValue('customerId', customerId);
                         setCustomerDisplayValue(customerName);
                       }}
                       placeholder="Search for customers..."
+                      onAddNewCustomer={handleAddNewCustomer}
+                      searchValue={customerDisplayValue}
+                      onSearchChange={setCustomerDisplayValue}
                     />
                   </div>
                 </CardContent>
@@ -312,7 +322,8 @@ export default function CreateOrderPage() {
                                 const val = e.target.value;
                                 const numVal = val === '' ? 1 : parseInt(val, 10);
                                 form.setValue(`items.${index}.quantity`, numVal);
-                                setForceUpdateCounter(c => c + 1);
+                                // Force re-calculation immediately
+                                setForceUpdateCounter(prev => prev + 1);
                               }}
                             />
                           </div>
@@ -533,6 +544,13 @@ export default function CreateOrderPage() {
           </div>
         </form>
       </Form>
+
+      {/* Add Customer Dialog */}
+      <AddCustomerDialog
+        isOpen={showAddCustomerDialog}
+        onOpenChange={setShowAddCustomerDialog}
+        onCustomerCreated={handleCustomerCreated}
+      />
     </div>
   );
 } 

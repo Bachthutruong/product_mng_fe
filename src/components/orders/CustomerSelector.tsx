@@ -1,14 +1,13 @@
-"use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getCustomers } from '@/services/api';
+import { getCustomers, getCustomerCategories } from '@/services/api';
 import { Customer } from '@/types';
 import { Input } from '@/components/ui/input';
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Search, User, Mail, Phone, MapPin, X } from 'lucide-react';
+import { Loader2, Search, User, Mail, Phone, MapPin, X, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CustomerSelectorProps {
@@ -16,14 +15,33 @@ interface CustomerSelectorProps {
   onChange: (customerId: string, customerName: string) => void;
   placeholder?: string;
   className?: string;
+  onAddNewCustomer?: () => void;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
-export function CustomerSelector({ onChange, placeholder = "Search customers...", className }: CustomerSelectorProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+export function CustomerSelector({ value, onChange, placeholder = "Search customers...", className, onAddNewCustomer, searchValue, onSearchChange }: CustomerSelectorProps) {
+  const [searchTerm, setSearchTerm] = useState(searchValue || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  console.log(setSelectedCategory);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Debounced search
   useEffect(() => {
@@ -33,19 +51,53 @@ export function CustomerSelector({ onChange, placeholder = "Search customers..."
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-//   const { data: customerCategories = [] } = useQuery({
-//     queryKey: ['customerCategories'],
-//     queryFn: async () => {
-//       try {
-//         const data = await getCustomerCategories();
-//         return Array.isArray(data) ? data : [];
-//       } catch (error) {
-//         console.error('Error loading customer categories:', error);
-//         return [];
-//       }
-//     },
-//     staleTime: 1000 * 60 * 5,
-//   });
+  // Sync with external value (when customer is created externally)
+  useEffect(() => {
+    if (value && !selectedCustomer) {
+      // If we have a value but no selected customer, we need to find the customer
+      // This will be handled by the parent component setting the searchTerm
+    }
+  }, [value, selectedCustomer]);
+
+  // Sync with external values (when customer is created externally)
+  useEffect(() => {
+    console.log('CustomerSelector props:', { value, searchValue, selectedCustomer });
+    
+    // If we have both value and searchValue, it means a customer was selected externally
+    if (value && searchValue) {
+      console.log('Setting customer from external values:', { value, searchValue });
+      setSearchTerm(searchValue);
+      
+      // Create a temporary customer object for display
+      const tempCustomer: Customer = {
+        _id: value,
+        name: searchValue,
+        phone: '',
+        categoryId: '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setSelectedCustomer(tempCustomer);
+    } else if (!value && !searchValue) {
+      // Reset when no customer is selected
+      setSelectedCustomer(null);
+      setSearchTerm('');
+    }
+  }, [value, searchValue]);
+
+  const { data: customerCategories = [] } = useQuery({
+    queryKey: ['customerCategories'],
+    queryFn: async () => {
+      try {
+        const data = await getCustomerCategories({ page: 1, limit: 100 });
+        return Array.isArray(data.data) ? data.data : [];
+      } catch (error) {
+        console.error('Error loading customer categories:', error);
+        return [];
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ['customers', { search: searchTerm, limit: 50 }],
@@ -53,6 +105,8 @@ export function CustomerSelector({ onChange, placeholder = "Search customers..."
     staleTime: 1000,
     enabled: showDropdown,
   });
+
+
 
   // Filter customers by category
   const filteredCustomers = customers.filter((customer: Customer) => {
@@ -63,6 +117,9 @@ export function CustomerSelector({ onChange, placeholder = "Search customers..."
   const handleCustomerSelect = (customer: Customer) => {
     setSelectedCustomer(customer);
     setSearchTerm(customer.name);
+    if (onSearchChange) {
+      onSearchChange(customer.name);
+    }
     onChange(customer._id, customer.name);
     setShowDropdown(false);
   };
@@ -77,6 +134,9 @@ export function CustomerSelector({ onChange, placeholder = "Search customers..."
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
+    if (onSearchChange) {
+      onSearchChange(value);
+    }
     setShowDropdown(true);
     
     if (!value) {
@@ -86,11 +146,19 @@ export function CustomerSelector({ onChange, placeholder = "Search customers..."
     }
   };
 
+  const handleAddNewCustomer = () => {
+    if (onAddNewCustomer) {
+      onAddNewCustomer();
+      setShowDropdown(false);
+    }
+  };
+
   return (
     <div className={cn("relative", className)}>
       <div className="space-y-2">
         <div className="relative">
           <Input
+            ref={inputRef}
             placeholder={placeholder}
             value={searchTerm}
             onChange={handleInputChange}
@@ -112,12 +180,39 @@ export function CustomerSelector({ onChange, placeholder = "Search customers..."
         </div>
 
         {/* Category Filter */}
-
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {customerCategories.map((category: any) => (
+              <SelectItem key={category._id} value={category._id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute z-50 w-full mt-2 max-h-80 overflow-y-auto border rounded-lg bg-background shadow-lg">
+        <div ref={dropdownRef} className="absolute z-50 w-full mt-2 max-h-80 overflow-y-auto border rounded-lg bg-background shadow-lg">
+          {/* Add New Customer Button */}
+          {onAddNewCustomer && (
+            <div className="p-3 border-b border-dashed">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddNewCustomer}
+                className="w-full flex items-center gap-2 text-primary hover:text-primary"
+              >
+                <Plus className="h-4 w-4" />
+                Add New Customer
+              </Button>
+            </div>
+          )}
+
           {isLoading && (
             <div className="p-4 text-center">
               <Loader2 className="h-4 w-4 animate-spin mx-auto" />
