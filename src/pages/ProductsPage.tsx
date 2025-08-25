@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { formatToYYYYMMDD } from "@/lib/date-utils";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PaginationControls } from "@/components/ui/PaginationControls";
 import { keepPreviousData } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,6 +44,7 @@ const ProductFormSchema = z.object({
   lowStockThreshold: z.coerce.number().int().min(0),
   expiryDate: z.date({ required_error: "到期日期是必需的" }),
   description: z.string().optional(),
+  discontinued: z.boolean().default(false),
 });
 type ProductFormData = z.infer<typeof ProductFormSchema>;
 
@@ -73,12 +75,13 @@ const ProductFormDialog = ({
           stock: product.stock ?? 0,
           lowStockThreshold: product.lowStockThreshold ?? 0,
           expiryDate: new Date(product.expiryDate),
+          discontinued: product.discontinued ?? false,
         });
       } else {
         reset({
           name: '', sku: '', categoryId: '', price: 0, cost: 0,
           stock: 0, unit: '', lowStockThreshold: 0,
-          description: '',
+          description: '', discontinued: false,
           expiryDate: new Date()
         });
       }
@@ -202,6 +205,24 @@ const ProductFormDialog = ({
             </div>
             
             <div className="col-span-1 md:col-span-2 space-y-2">
+                <div className="flex items-center space-x-2">
+                    <Controller
+                        name="discontinued"
+                        control={control}
+                        render={({ field }) => (
+                            <Checkbox
+                                id="discontinued"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                            />
+                        )}
+                    />
+                    <Label htmlFor="discontinued">已停售</Label>
+                </div>
+                <p className="text-sm text-muted-foreground">勾選此選項表示產品已停止銷售</p>
+            </div>
+            
+            <div className="col-span-1 md:col-span-2 space-y-2">
                 <Label>產品圖片</Label>
                 <ImageUploader 
                     onFilesChange={setFilesToUpload}
@@ -233,12 +254,19 @@ export default function ProductsPage() {
   
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10); // Add pageSize state
-  const [appliedFilters, setAppliedFilters] = useState({ search: "", categoryId: "all", stockStatus: "all" });
-  const [localFilters, setLocalFilters] = useState(appliedFilters);
+  const [appliedFilters, setAppliedFilters] = useState({ search: "", categoryId: "all", stockStatus: "all", discontinued: "all" });
+  const [localFilters, setLocalFilters] = useState({ search: "", categoryId: "all", stockStatus: "all", discontinued: "all" });
   
   const { data, isLoading } = useQuery({
     queryKey: ['products', page, appliedFilters, pageSize], // Add pageSize to queryKey
-    queryFn: () => getProducts({ page, limit: pageSize, ...appliedFilters }), // Use pageSize in query
+    queryFn: () => getProducts({ 
+      page, 
+      limit: pageSize, 
+      search: appliedFilters.search,
+      categoryId: appliedFilters.categoryId === 'all' ? undefined : appliedFilters.categoryId,
+      stockStatus: appliedFilters.stockStatus === 'all' ? undefined : appliedFilters.stockStatus,
+      discontinued: appliedFilters.discontinued === 'all' ? undefined : appliedFilters.discontinued,
+    }), // Use pageSize in query
     placeholderData: keepPreviousData,
   });
 
@@ -266,7 +294,7 @@ export default function ProductsPage() {
   };
   
   const handleClearFilters = () => {
-      const defaultFilters = { search: "", categoryId: "all", stockStatus: "all" };
+      const defaultFilters = { search: "", categoryId: "all", stockStatus: "all", discontinued: "all" };
       setPage(1);
       setLocalFilters(defaultFilters);
       setAppliedFilters(defaultFilters);
@@ -283,6 +311,8 @@ export default function ProductsPage() {
         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
         <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
       </TableRow>
@@ -308,7 +338,51 @@ export default function ProductsPage() {
                 <CardDescription>使用下面的選項來縮小您的產品列表。</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Quick Filter Tabs */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                    <Button
+                        variant={appliedFilters.discontinued === "all" && appliedFilters.stockStatus === "all" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                            setLocalFilters(f => ({...f, discontinued: "all", stockStatus: "all"}));
+                            setAppliedFilters(f => ({...f, discontinued: "all", stockStatus: "all"}));
+                        }}
+                    >
+                        所有產品
+                    </Button>
+                    <Button
+                        variant={appliedFilters.discontinued === "false" && appliedFilters.stockStatus === "inStock" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                            setLocalFilters(f => ({...f, discontinued: "false", stockStatus: "inStock"}));
+                            setAppliedFilters(f => ({...f, discontinued: "false", stockStatus: "inStock"}));
+                        }}
+                    >
+                        產品還庫存
+                    </Button>
+                    <Button
+                        variant={appliedFilters.discontinued === "false" && appliedFilters.stockStatus === "out-of-stock" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                            setLocalFilters(f => ({...f, discontinued: "false", stockStatus: "out-of-stock"}));
+                            setAppliedFilters(f => ({...f, discontinued: "false", stockStatus: "out-of-stock"}));
+                        }}
+                    >
+                        產品缺貨
+                    </Button>
+                    <Button
+                        variant={appliedFilters.discontinued === "true" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                            setLocalFilters(f => ({...f, discontinued: "true", stockStatus: "all"}));
+                            setAppliedFilters(f => ({...f, discontinued: "true", stockStatus: "all"}));
+                        }}
+                    >
+                        產品已停售
+                    </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <Label>搜尋</Label>
                         <Input placeholder="名稱、SKU、描述..." value={localFilters.search} onChange={e => setLocalFilters(f => ({...f, search: e.target.value}))} />
@@ -329,8 +403,20 @@ export default function ProductsPage() {
                             <SelectTrigger><SelectValue placeholder="所有狀態" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">所有狀態</SelectItem>
+                                <SelectItem value="inStock">有庫存</SelectItem>
                                 <SelectItem value="low">低庫存</SelectItem>
                                 <SelectItem value="out-of-stock">缺貨</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <Label>停售狀態</Label>
+                        <Select value={localFilters.discontinued} onValueChange={v => setLocalFilters(f => ({...f, discontinued: v}))}>
+                            <SelectTrigger><SelectValue placeholder="所有狀態" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">所有狀態</SelectItem>
+                                <SelectItem value="false">正常銷售</SelectItem>
+                                <SelectItem value="true">已停售</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -360,6 +446,7 @@ export default function ProductsPage() {
                             <TableHead className="whitespace-nowrap">成本</TableHead>
                             <TableHead className="whitespace-nowrap">庫存</TableHead>
                             <TableHead className="whitespace-nowrap">到期日 (主要)</TableHead>
+                            <TableHead className="whitespace-nowrap">停售狀態</TableHead>
                             <TableHead className="whitespace-nowrap">警示</TableHead>
                             <TableHead className="text-right whitespace-nowrap">操作</TableHead>
                         </TableRow>
@@ -367,7 +454,7 @@ export default function ProductsPage() {
                     <TableBody>
                         {isLoading ? <TableSkeleton /> : 
                         products.length === 0 ? (
-                            <TableRow><TableCell colSpan={11} className="h-24 text-center">找不到產品。</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={12} className="h-24 text-center">找不到產品。</TableCell></TableRow>
                         ) : (
                             products.map((product: Product) => (
                             <TableRow key={product._id}>
@@ -384,6 +471,13 @@ export default function ProductsPage() {
                                 <TableCell className="whitespace-nowrap">{formatCurrency(product.cost ?? 0)}</TableCell>
                                 <TableCell className="whitespace-nowrap">{product.stock}</TableCell>
                                 <TableCell className="whitespace-nowrap">{formatToYYYYMMDD(new Date(product.expiryDate))}</TableCell>
+                                <TableCell className="whitespace-nowrap">
+                                    {product.discontinued ? (
+                                        <Badge variant="secondary" className="bg-gray-500 text-white">已停售</Badge>
+                                    ) : (
+                                        <Badge variant="default" className="bg-green-600 text-white">正常銷售</Badge>
+                                    )}
+                                </TableCell>
                                 <TableCell className="whitespace-nowrap">
                                 {product.stock <= product.lowStockThreshold && <Badge variant="destructive">庫存不足 ({product.stock}/{product.lowStockThreshold})</Badge>}
                                 </TableCell>

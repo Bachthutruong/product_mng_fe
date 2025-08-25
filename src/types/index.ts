@@ -40,6 +40,7 @@ export interface Product {
   categoryName?: string;
   stock: number;
   lowStockThreshold: number;
+  discontinued?: boolean;
   expiryDate: string;
   createdAt: string;
   updatedAt: string;

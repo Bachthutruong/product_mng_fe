@@ -39,7 +39,7 @@ export function ProductSelector({ onProductSelect, placeholder = "搜尋產品..
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products', { search: searchTerm, limit: 20 }],
-    queryFn: () => getProducts({ search: searchTerm, limit: 20 }).then(res => res.data),
+    queryFn: () => getProducts({ search: searchTerm, limit: 20, discontinued: 'false' }).then(res => res.data),
     staleTime: 1000,
     enabled: showDropdown,
   });

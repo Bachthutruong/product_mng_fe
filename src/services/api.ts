@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://product-mng-be.onrender.com/api',
-  // baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5002/api',
+  // baseURL: import.meta.env.VITE_API_URL || 'https://product-mng-be.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5002/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -74,7 +74,7 @@ export const getCustomer = async (id: string) => {
 };
 
 // --- Product APIs ---
-export const getProducts = async (params: { page?: number; limit?: number; search?: string; categoryId?: string; stockStatus?: string; }) => {
+export const getProducts = async (params: { page?: number; limit?: number; search?: string; categoryId?: string; stockStatus?: string; discontinued?: string; }) => {
   const { data } = await api.get('/products', { params });
   return data;
 };

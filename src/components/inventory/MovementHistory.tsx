@@ -85,7 +85,7 @@ export function MovementHistory() {
 
     const { data: productsData } = useQuery({
         queryKey: ['products', 'all'],
-        queryFn: () => getProducts({ limit: 1000 })
+        queryFn: () => getProducts({ limit: 1000, discontinued: 'false' })
     });
 
     const revertMutation = useMutation({

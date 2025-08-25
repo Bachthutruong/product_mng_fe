@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -35,7 +35,7 @@ const EditOrderSchema = z.object({
   items: z.array(EditOrderItemSchema).min(1, "訂單必須至少有一個項目。"),
   notes: z.string().optional(),
   status: z.string(),
-  discountType: z.enum(['percentage', 'fixed']).nullable().optional(),
+  discountType: z.enum(['none', 'percentage', 'fixed']).optional(),
   discountValueInput: z.string().optional(),
   shippingFeeInput: z.string().optional(),
   storeShippingCostInput: z.string().optional(),
@@ -68,12 +68,31 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
       })),
       notes: order.notes || '',
       status: order.status,
-      discountType: (order as any).discountType || null,
+      discountType: (order as any).discountType || 'none',
       discountValueInput: (order as any).discountValue?.toString() || '',
       shippingFeeInput: (order as any).shippingFee?.toString() || '',
       storeShippingCostInput: (order as any).storeShippingCost?.toString() || '',
     },
   });
+
+  // Reset form when order changes
+  React.useEffect(() => {
+    form.reset({
+      customerId: order.customerId,
+      items: order.items.map(item => ({
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      })),
+      notes: order.notes || '',
+      status: order.status,
+      discountType: (order as any).discountType || 'none',
+      discountValueInput: (order as any).discountValue?.toString() || '',
+      shippingFeeInput: (order as any).shippingFee?.toString() || '',
+      storeShippingCostInput: (order as any).storeShippingCost?.toString() || '',
+    });
+  }, [order, form]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -91,7 +110,25 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: Partial<Order>) => updateOrder(order._id, data),
+    mutationFn: (data: EditOrderFormValues) => {
+      // Transform form data to match backend expectations
+      const transformedData = {
+        customerId: data.customerId,
+        items: data.items.map(item => ({
+          productId: item.productId,
+          productName: item.productName,
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+        })),
+        notes: data.notes,
+        status: data.status,
+        discountType: data.discountType === 'none' ? null : data.discountType,
+        discountValue: data.discountType === 'none' ? undefined : (data.discountValueInput ? parseFloat(data.discountValueInput) : undefined),
+        shippingFee: data.shippingFeeInput ? parseFloat(data.shippingFeeInput) : undefined,
+        storeShippingCost: data.storeShippingCostInput ? parseFloat(data.storeShippingCostInput) : undefined,
+      };
+      return updateOrder(order._id, transformedData);
+    },
     onSuccess: () => {
       toast({ title: "訂單已更新", description: `訂單 ${order.orderNumber} 已成功更新。` });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -113,7 +150,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
   const watchedShippingFeeInput = form.watch("shippingFeeInput");
 
   // Calculate totals
-  const { subtotal, discountAmount, totalAmount } = useMemo(() => {
+  const { subtotal, totalAmount } = useMemo(() => {
     const currentSubtotal = watchedItems.reduce((acc, item) => {
       const quantity = Number(item.quantity) || 0;
       const price = Number(item.unitPrice) || 0;
@@ -127,6 +164,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
     } else if (watchedDiscountType === 'fixed' && discountValue > 0) {
       currentDiscountAmount = discountValue;
     }
+    // If discountType is 'none', discountAmount remains 0
     currentDiscountAmount = Math.max(0, Math.min(currentDiscountAmount, currentSubtotal));
     
     const shipping = parseFloat(watchedShippingFeeInput || '0') || 0;
@@ -153,16 +191,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
       toast({ variant: "destructive", title: "認證錯誤", description: "您必須登入。" });
       return;
     }
-    const submissionData = {
-      ...data,
-      status: data.status as Order['status'],
-      totalAmount,
-      discountAmount,
-      shippingFee: data.shippingFeeInput ? parseFloat(data.shippingFeeInput) : 0,
-      discountValue: data.discountValueInput ? parseFloat(data.discountValueInput) : 0,
-      storeShippingCost: data.storeShippingCostInput ? parseFloat(data.storeShippingCostInput) : 0,
-    };
-    mutation.mutate(submissionData);
+    mutation.mutate(data);
   }
 
   if (isLoadingCustomers) {
@@ -183,7 +212,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>客戶</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="選擇客戶" />
@@ -193,6 +222,33 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
                       {customers.map((c: Customer) => (
                         <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>訂單狀態</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="選擇狀態" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="pending">待處理</SelectItem>
+                      <SelectItem value="processing">處理中</SelectItem>
+                      <SelectItem value="shipped">已出貨</SelectItem>
+                      <SelectItem value="delivered">已送達</SelectItem>
+                      <SelectItem value="cancelled">已取消</SelectItem>
+                      <SelectItem value="completed">已完成</SelectItem>
+                      <SelectItem value="returned">已退貨</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -244,19 +300,25 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
                     />
                   </div>
                   <div className="col-span-2">
-                    <Input 
-                      type="number"
-                      {...form.register(`items.${index}.unitPrice`)}
-                      className="w-full text-xs"
-                      min="0"
-                      step="0.01"
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const numVal = val === '' ? 0 : parseFloat(val);
-                        form.setValue(`items.${index}.unitPrice`, numVal);
-                        // Force re-calculation immediately
-                        setForceUpdateCounter(prev => prev + 1);
-                      }}
+                    <Controller
+                      control={form.control}
+                      name={`items.${index}.unitPrice`}
+                      render={({ field }) => (
+                        <Input 
+                          type="number"
+                          {...field}
+                          className="w-full text-xs"
+                          min="0"
+                          step="0.01"
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const numVal = val === '' ? 0 : parseFloat(val);
+                            field.onChange(numVal);
+                            // Force re-calculation immediately
+                            setForceUpdateCounter(prev => prev + 1);
+                          }}
+                        />
+                      )}
                     />
                   </div>
                   <div className="col-span-1 font-medium text-xs">
@@ -306,13 +368,14 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>折扣類型</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="選擇折扣類型" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="none">無折扣</SelectItem>
                             <SelectItem value="percentage">百分比 (%)</SelectItem>
                             <SelectItem value="fixed">固定金額 ($)</SelectItem>
                           </SelectContent>
@@ -332,7 +395,7 @@ export function EditOrderForm({ order }: EditOrderFormProps) {
                             type="number"
                             placeholder="例如：10 或 5.50"
                             {...field}
-                            disabled={!watchedDiscountType}
+                            disabled={!watchedDiscountType || watchedDiscountType === 'none'}
                             min="0"
                             onChange={(e) => {
                               field.onChange(e);

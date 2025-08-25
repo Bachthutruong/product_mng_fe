@@ -6,7 +6,7 @@ import { MovementHistory } from "@/components/inventory/MovementHistory";
 export default function InventoryPage() {
   const { data: productsData, isLoading: isLoadingProducts } = useQuery({
     queryKey: ['products', 'all'], // Use a distinct query key for all products
-    queryFn: () => getProducts({ limit: 1000 }), // Fetch all products for the form
+    queryFn: () => getProducts({ limit: 1000, discontinued: 'false' }), // Fetch all active products for the form
   });
 
   const allProducts = productsData?.data || [];

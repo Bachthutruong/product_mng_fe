@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getOrders, deleteOrder, updateOrderStatus } from "@/services/api";
+import { getOrders, deleteOrder, updateOrderStatus, getCustomer } from "@/services/api";
 import { Order } from '@/types';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
@@ -287,7 +287,22 @@ export default function OrdersPage() {
     setCurrentPage(1);
   };
 
-  const handlePrintOrder = (order: Order) => {
+  const handlePrintOrder = async (order: Order) => {
+    // Get customer details first
+    let customerPhone = 'N/A';
+    let customerEmail = 'N/A';
+    
+    try {
+      const customerResponse = await getCustomer(order.customerId);
+      if (customerResponse.success && customerResponse.data) {
+        customerPhone = customerResponse.data.phone || 'N/A';
+        customerEmail = customerResponse.data.email || 'N/A';
+      }
+    } catch (error) {
+      console.error('Failed to fetch customer details:', error);
+      // Continue with default values if customer fetch fails
+    }
+    
     // Calculate subtotal and format numbers
     const subtotal = order.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     const discount = (order as any).discountAmount || 0;
@@ -330,10 +345,15 @@ export default function OrdersPage() {
               box-shadow: 0 0 10px rgba(0,0,0,0.1);
             }
             .header {
-              text-align: center;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
               margin-bottom: 30px;
               padding-bottom: 20px;
               border-bottom: 1px solid #eee;
+            }
+            .company-info {
+              text-align: left;
             }
             .title {
               font-size: 24px;
@@ -345,20 +365,22 @@ export default function OrdersPage() {
               color: #666;
               margin: 5px 0;
             }
-            .order-info {
-              margin-bottom: 30px;
+            .order-customer-info {
+              text-align: right;
+              min-width: 300px;
             }
-            .order-info table {
-              width: 100%;
+            .order-customer-info table {
               border-collapse: collapse;
+              margin-left: auto;
             }
-            .order-info td {
+            .order-customer-info td {
               padding: 8px;
               border: 1px solid #ddd;
               font-size: 14px;
+              text-align: left;
             }
-            .order-info td:first-child {
-              width: 150px;
+            .order-customer-info td:first-child {
+              width: 120px;
               background: #f9f9f9;
               font-weight: 500;
             }
@@ -439,30 +461,34 @@ export default function OrdersPage() {
         <body>
           <div class="page">
             <div class="header">
-              <div class="title">Annie's Way 安妮絲薇</div>
-              <div class="contact">客服專線：07-373-0202 | Email：sales@anniesway.com.tw</div>
-              <div class="contact">地址：高雄市仁武區八德南路468號</div>
-            </div>
-
-            <div class="order-info">
-              <table>
-                <tr>
-                  <td>訂單編號</td>
-                  <td>${order.orderNumber}</td>
-                </tr>
-                <tr>
-                  <td>訂單日期</td>
-                  <td>${formatToYYYYMMDDWithTime(new Date(order.orderDate))}</td>
-                </tr>
-                <tr>
-                  <td>訂單狀態</td>
-                  <td>${getChineseStatus(order.status)}</td>
-                </tr>
-                <tr>
-                  <td>客戶名稱</td>
-                  <td>${order.customerName}</td>
-                </tr>
-              </table>
+              <div class="company-info">
+                <div class="title">Annie's Way 安妮絲薇</div>
+                <div class="contact">客服信箱：sales@anniesway.com.tw</div>
+              </div>
+              <div class="order-customer-info">
+                <table>
+                  <tr>
+                    <td>訂單編號</td>
+                    <td>${order.orderNumber}</td>
+                  </tr>
+                  <tr>
+                    <td>訂單日期</td>
+                    <td>${formatToYYYYMMDDWithTime(new Date(order.orderDate))}</td>
+                  </tr>
+                  <tr>
+                    <td>客戶名稱</td>
+                    <td>${order.customerName}</td>
+                  </tr>
+                  <tr>
+                    <td>客戶電話</td>
+                    <td>${customerPhone}</td>
+                  </tr>
+                  <tr>
+                    <td>客戶信箱</td>
+                    <td>${customerEmail}</td>
+                  </tr>
+                </table>
+              </div>
             </div>
 
             <table class="items-table">
@@ -676,7 +702,7 @@ export default function OrdersPage() {
                         <OrderStatusActionButton order={order} onStatusUpdated={handleOrderCreatedOrUpdated} />
                         <Button variant="ghost" size="icon" onClick={() => navigate(`/orders/${order._id}/edit`)}><Edit3 className="h-4 w-4" /></Button>
                         <DeleteOrderButton orderId={order._id} orderNumber={order.orderNumber} onOrderDeleted={handleOrderDeleted} />
-                        <Button variant="ghost" size="icon" onClick={() => handlePrintOrder(order)}><Printer className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handlePrintOrder(order).catch(console.error)}><Printer className="h-4 w-4" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}

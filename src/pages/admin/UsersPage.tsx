@@ -7,9 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Loader2, Search, Trash2, Users, UserX } from "lucide-react";
+import { Loader2, Search, Trash2, Users, UserX, Edit3 } from "lucide-react";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
-// import { EditUserDialog } from "@/components/admin/EditUserDialog";
+import { EditUserDialog } from "@/components/admin/EditUserDialog";
 import { formatToYYYYMMDDWithTime } from "@/lib/date-utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +42,7 @@ function DeleteUserButton({ user, currentUserId, onUserDeleted }: { user: User; 
     mutation.mutate(user._id);
   };
 
-  if (user._id === currentUserId) {
+  if (user._id === currentUserId || user.id === currentUserId) {
     return null; // Don't show delete button for the current user
   }
 
@@ -74,6 +74,8 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   
   const { data, isLoading, isError, error } = useQuery({ 
     queryKey: ["users", searchTerm], 
@@ -90,7 +92,7 @@ export default function UsersPage() {
         <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
         <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
         <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
-        <TableCell className="text-right"><Skeleton className="h-8 w-8 inline-block" /></TableCell>
+        <TableCell className="text-right"><Skeleton className="h-8 w-16 inline-block" /></TableCell>
       </TableRow>
     ))
   );
@@ -163,11 +165,25 @@ export default function UsersPage() {
                         <TableCell>{formatToYYYYMMDDWithTime(new Date(user.createdAt))}</TableCell>
                         <TableCell>{formatToYYYYMMDDWithTime(new Date(user.updatedAt))}</TableCell>
                         <TableCell className="text-right">
-                          <DeleteUserButton 
-                            user={user} 
-                            currentUserId={currentUser?.id} 
-                            onUserDeleted={() => queryClient.invalidateQueries({ queryKey: ['users', searchTerm] })} 
-                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditingUser(user);
+                                setIsEditDialogOpen(true);
+                              }}
+                              className="text-muted-foreground hover:text-primary"
+                              title={`編輯用戶 ${user.name}`}
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </Button>
+                            <DeleteUserButton 
+                              user={user} 
+                              currentUserId={currentUser?.id} 
+                              onUserDeleted={() => queryClient.invalidateQueries({ queryKey: ['users', searchTerm] })} 
+                            />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -177,6 +193,16 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
+      
+      <EditUserDialog
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        user={editingUser}
+        onUserUpdated={() => {
+          queryClient.invalidateQueries({ queryKey: ['users', searchTerm] });
+          setEditingUser(null);
+        }}
+      />
     </div>
   );
 } 
