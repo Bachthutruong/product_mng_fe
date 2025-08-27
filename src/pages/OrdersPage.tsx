@@ -289,14 +289,14 @@ export default function OrdersPage() {
 
   const handlePrintOrder = async (order: Order) => {
     // Get customer details first
-    let customerPhone = 'N/A';
-    let customerEmail = 'N/A';
+    let customerPhone = '無';
+    let customerEmail = '無';
     
     try {
       const customerResponse = await getCustomer(order.customerId);
       if (customerResponse.success && customerResponse.data) {
-        customerPhone = customerResponse.data.phone || 'N/A';
-        customerEmail = customerResponse.data.email || 'N/A';
+        customerPhone = customerResponse.data.phone || '無';
+        customerEmail = customerResponse.data.email || '無';
       }
     } catch (error) {
       console.error('Failed to fetch customer details:', error);
@@ -359,6 +359,25 @@ export default function OrdersPage() {
               font-size: 24px;
               font-weight: 700;
               margin-bottom: 10px;
+            }
+            .brand-info {
+              margin: 15px 0;
+            }
+            .brand-slogan {
+              font-size: 18px;
+              font-weight: 600;
+              color: #2563eb;
+              margin-bottom: 10px;
+            }
+            .brand-achievements {
+              display: flex;
+              flex-direction: column;
+              gap: 5px;
+            }
+            .achievement {
+              font-size: 12px;
+              color: #374151;
+              line-height: 1.4;
             }
             .contact {
               font-size: 14px;
@@ -463,6 +482,18 @@ export default function OrdersPage() {
             <div class="header">
               <div class="company-info">
                 <div class="title">Annie's Way 安妮絲薇</div>
+                <div class="brand-info">
+                  <div class="brand-slogan">果凍面膜第一品牌</div>
+                  <div class="brand-achievements">
+                    <div class="achievement">💎單月熱銷突破 10 萬瓶</div>
+                    <div class="achievement">💎榮獲多項國內外大獎</div>
+                    <div class="achievement">💎獲頒高雄十大化妝品伴手禮</div>
+                    <div class="achievement">💎全球知名媒體報導推薦</div>
+                    <div class="achievement">💎榮獲台灣精品獎、FG特優評鑑</div>
+                    <div class="achievement">💎入圍屈臣氏、柯夢波丹美妝大賞</div>
+                    <div class="achievement">💎通過國際GMP、ISO高規格品管認證</div>
+                  </div>
+                </div>
                 <div class="contact">客服信箱：sales@anniesway.com.tw</div>
               </div>
               <div class="order-customer-info">
@@ -671,7 +702,7 @@ export default function OrdersPage() {
                       </span>
                     </TableCell>
                     <TableCell>{formatToYYYYMMDDWithTime(new Date(order.orderDate))}</TableCell>
-                    <TableCell>{(order as any).createdByName || 'N/A'}</TableCell>
+                    <TableCell>{(order as any).createdByName || '無'}</TableCell>
                     <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
                     <TableCell>
                       <Badge

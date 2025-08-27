@@ -105,8 +105,23 @@ const ProductFormDialog = ({
     },
     onSuccess: () => {
       toast({ title: "成功", description: `產品已成功${isEditMode ? '更新' : '新增'}` });
+      
+      // Invalidate ALL related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['productCategories'] }); // Invalidate categories query
+      queryClient.invalidateQueries({ queryKey: ['productCategories'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+      queryClient.invalidateQueries({ queryKey: ['inventoryAlerts'] });
+      queryClient.invalidateQueries({ queryKey: ['recentActivity'] });
+      
+      // If editing, also invalidate the specific product query
+      if (isEditMode && product) {
+        queryClient.invalidateQueries({ queryKey: ['product', product._id] });
+        
+        // Force refetch all dashboard data to show updated inventory alerts
+        queryClient.refetchQueries({ queryKey: ['inventoryAlerts'] });
+        queryClient.refetchQueries({ queryKey: ['dashboardStats'] });
+      }
+      
       onOpenChange(false);
     },
     onError: (err: any) => toast({ variant: "destructive", title: "錯誤", description: err.response?.data?.error || "操作失敗" }),
@@ -464,7 +479,9 @@ export default function ProductsPage() {
                                 <TableCell className="font-medium whitespace-nowrap">
                                     <Link to={`/products/${product._id}`} className="hover:underline text-primary">{product.name}</Link>
                                 </TableCell>
-                                <TableCell className="whitespace-nowrap">{product.categoryName}</TableCell>
+                                <TableCell className="whitespace-nowrap">
+                                    {categoriesData?.find(c => c._id === product.categoryId)?.name || '未知分類'}
+                                </TableCell>
                                 <TableCell className="whitespace-nowrap">{product.sku}</TableCell>
                                 <TableCell className="whitespace-nowrap">{product.unit}</TableCell>
                                 <TableCell className="whitespace-nowrap">{formatCurrency(product.price)}</TableCell>
@@ -479,7 +496,9 @@ export default function ProductsPage() {
                                     )}
                                 </TableCell>
                                 <TableCell className="whitespace-nowrap">
-                                {product.stock <= product.lowStockThreshold && <Badge variant="destructive">庫存不足 ({product.stock}/{product.lowStockThreshold})</Badge>}
+                                {!product.discontinued && product.stock <= product.lowStockThreshold && 
+                                    <Badge variant="destructive">庫存不足 ({product.stock}/{product.lowStockThreshold})</Badge>
+                                }
                                 </TableCell>
                                 <TableCell className="text-right whitespace-nowrap">
                                 <Button variant="ghost" size="icon" onClick={() => { setSelectedProduct(product); setIsFormOpen(true); }}><Edit3 className="h-4 w-4" /></Button>
